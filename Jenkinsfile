@@ -18,9 +18,9 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-		// 1. Buscamos el archivo JAR (excluyendo el 'plain') y lo copiamos a la raíz como app.jar
-                // El comando 'find' busca en todas las subcarpetas.
-            	sh 'find . -name "*.jar" ! -name "*plain*" -exec cp {} app.jar \;'
+		// Buscamos el jar y lo movemos a la raíz de forma sencilla
+                // Esto evita usar la barra invertida que rompió el pipeline
+            	sh 'cp build/libs/*SNAPSHOT.jar app.jar || cp build/libs/*.jar app.jar || true'
                 // 2. Verificamos que el archivo existe (si esto falla, el log nos dirá por qué)
             	sh 'ls -lh app.jar'
                 // 3. Construimos la imagen. Ya no necesitamos --build-arg porque el archivo se llama siempre app.jar
