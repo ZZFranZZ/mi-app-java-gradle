@@ -17,13 +17,23 @@ pipeline {
         }
 
         stage('Docker Build') {
-	    steps {
+            steps {
+            steps {
                 script {
-                    // 1. Verificamos que el JAR ya está en la raíz (gracias al cambio en build.gradle)
+                    echo "--- INICIANDO CONSTRUCCIÓN Y EMPAQUETADO ---"
+                    
+                    // 1. Corregimos permisos y compilamos en un solo paso
+                    sh 'chmod +x gradlew'
+                    sh './gradlew clean build'
+                    
+                    echo "--- BUSCANDO EL ARTEFACTO ---"
+                    // 2. Buscamos el JAR y lo traemos a la raíz (usando doble barra \\ para que Groovy no se queje)
+                    sh 'find . -name "*.jar" ! -name "*plain*" -exec cp {} app.jar \\;'
+                    
+                    // 3. Verificamos que el archivo está listo
                     sh 'ls -lh app.jar'
                     
-                    // 2. Construimos la imagen. 
-                    // El Dockerfile solo necesita hacer 'COPY app.jar app.jar'
+                    // 4. Construimos la imagen Docker
                     sh "docker build -t mi-app-java:latest -t mi-app-java:${env.BUILD_NUMBER} ."
                 }
                 echo "¡Imagen Docker construida y etiquetada exitosamente!"
