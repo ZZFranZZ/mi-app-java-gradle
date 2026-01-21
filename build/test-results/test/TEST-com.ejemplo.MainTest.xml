@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.ejemplo.MainTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-01-21T13:10:08" hostname="k8s-tools" time="0.017">
+  <properties/>
+  <testcase name="testDummy()" classname="com.ejemplo.MainTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
