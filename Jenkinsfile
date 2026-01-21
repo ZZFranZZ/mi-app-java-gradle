@@ -17,15 +17,16 @@ pipeline {
         }
 
         stage('Docker Build') {
-            steps {
-		// Buscamos el jar y lo movemos a la raíz de forma sencilla
-                // Esto evita usar la barra invertida que rompió el pipeline
-            	sh 'cp build/libs/*SNAPSHOT.jar app.jar || cp build/libs/*.jar app.jar || true'
-                // 2. Verificamos que el archivo existe (si esto falla, el log nos dirá por qué)
-            	sh 'ls -lh app.jar'
-                // 3. Construimos la imagen. Ya no necesitamos --build-arg porque el archivo se llama siempre app.jar
-                sh "docker build -t mi-app-java:latest -t mi-app-java:${env.BUILD_NUMBER} ."
-                echo "Imagen Docker construida exitosamente."
+	    steps {
+                script {
+                    // 1. Verificamos que el JAR ya está en la raíz (gracias al cambio en build.gradle)
+                    sh 'ls -lh app.jar'
+                    
+                    // 2. Construimos la imagen. 
+                    // El Dockerfile solo necesita hacer 'COPY app.jar app.jar'
+                    sh "docker build -t mi-app-java:latest -t mi-app-java:${env.BUILD_NUMBER} ."
+                }
+                echo "¡Imagen Docker construida y etiquetada exitosamente!"
             }
         }
 

@@ -26,3 +26,18 @@ jacocoTestReport {
         html.required = true
     }
 }
+
+// --- NUEVA SECCIÓN PARA AUTOMATIZACIÓN ---
+
+// Esta tarea busca el JAR generado y lo saca a la raíz para que Docker lo vea
+tasks.register('copyJarToRoot', Copy) {
+    from file("$buildDir/libs")
+    include "*.jar"
+    exclude "*plain.jar"
+    into rootProject.projectDir
+    rename { "app.jar" }
+}
+
+// Esto asegura que cada vez que hagas './gradlew build', 
+// el archivo app.jar se actualice automáticamente en la raíz.
+build.finalizedBy(copyJarToRoot)
