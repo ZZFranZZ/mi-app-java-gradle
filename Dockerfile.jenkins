@@ -1,0 +1,22 @@
+FROM ubuntu:24.04
+
+USER root
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    curl \
+    git \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /usr/share/jenkins
+RUN curl -L https://get.jenkins.io/war-stable/latest/jenkins.war -o /usr/share/jenkins/jenkins.war
+
+ENV JENKINS_HOME=/var/jenkins_home
+RUN mkdir -p /var/jenkins_home
+
+EXPOSE 8080 50000
+
+# USA ESTA FORMA QUE ES LA MÁS SEGURA:
+ENTRYPOINT ["java", "-jar", "/usr/share/jenkins/jenkins.war", "--prefix=/jenkins"]
