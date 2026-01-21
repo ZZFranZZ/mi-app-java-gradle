@@ -1,61 +1,53 @@
 pipeline {
-    agent { label 'self-hosted' }
-    
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "mi-app-java"
+    }
+
     stages {
-        stage('Build & Test') { 
+        stage('Checkout') {
             steps {
-                sh 'chmod +x gradlew'
-                // Genera el .jar en build/libs/
-                sh './gradlew clean build' 
-            }
-        }
-        
-        stage('Code Quality') {
-            steps {
-                sh './gradlew jacocoTestReport'
+                checkout scm
             }
         }
 
-        stage('Docker Build') {
-            steps {
+        stage('Build & Docker') {
             steps {
                 script {
                     echo "--- INICIANDO CONSTRUCCIÓN Y EMPAQUETADO ---"
                     
-                    // 1. Corregimos permisos y compilamos en un solo paso
+                    // 1. Corregimos permisos y compilamos
                     sh 'chmod +x gradlew'
                     sh './gradlew clean build'
                     
                     echo "--- BUSCANDO EL ARTEFACTO ---"
-                    // 2. Buscamos el JAR y lo traemos a la raíz (usando doble barra \\ para que Groovy no se queje)
+                    // 2. Buscamos el JAR y lo traemos a la raíz (usando doble barra \\)
                     sh 'find . -name "*.jar" ! -name "*plain*" -exec cp {} app.jar \\;'
                     
                     // 3. Verificamos que el archivo está listo
                     sh 'ls -lh app.jar'
                     
                     // 4. Construimos la imagen Docker
-                    sh "docker build -t mi-app-java:latest -t mi-app-java:${env.BUILD_NUMBER} ."
+                    sh "docker build -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
                 }
-                echo "¡Imagen Docker construida y etiquetada exitosamente!"
             }
         }
 
         stage('K8s Deploy (Simulado)') {
             steps {
-                // Como ya tienes kubectl montado, este comando funcionará
-                // Por ahora solo verificamos que Jenkins vea el cluster
-                sh 'kubectl get nodes'
-                echo "Listo para aplicar el deployment.yaml en el siguiente paso."
+                echo "Simulando despliegue en Kubernetes..."
+                echo "Desplegando imagen: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
             }
         }
     }
-    
+
     post {
         success {
-            echo "¡Pipeline finalizado con éxito! La imagen mi-app-java:latest está lista."
+            echo '¡Pipeline finalizado con éxito!'
         }
         failure {
-            echo "Algo falló. Revisa los logs de la consola."
+            echo 'Algo falló. Revisa los logs de la consola.'
         }
     }
 }
