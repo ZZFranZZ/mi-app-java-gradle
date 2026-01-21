@@ -18,11 +18,13 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                // Construye la imagen usando el Dockerfile de la raíz
-                // Le ponemos un tag con el número de build para tener historial
-                sh 'ls -R build/libs/'  // Esto nos chivará dónde está el JAR exacto
-                sh 'find build/libs/ -name "*.jar"'
-                sh 'docker build --build-arg JAR_FILE=$(ls build/libs/*.jar | grep -v plain | head -n 1) -t mi-app-java:latest .'
+		// 1. Buscamos el archivo JAR (excluyendo el 'plain') y lo copiamos a la raíz como app.jar
+                // El comando 'find' busca en todas las subcarpetas.
+            	sh 'find . -name "*.jar" ! -name "*plain*" -exec cp {} app.jar \;'
+                // 2. Verificamos que el archivo existe (si esto falla, el log nos dirá por qué)
+            	sh 'ls -lh app.jar'
+                // 3. Construimos la imagen. Ya no necesitamos --build-arg porque el archivo se llama siempre app.jar
+                sh "docker build -t mi-app-java:latest -t mi-app-java:${env.BUILD_NUMBER} ."
                 echo "Imagen Docker construida exitosamente."
             }
         }

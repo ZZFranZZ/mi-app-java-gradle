@@ -1,7 +1,4 @@
 FROM eclipse-temurin:17-jdk-alpine
-#FROM openjdk:17-jdk-slim
-# No usamos COPY build/libs/*.jar porque a veces hay dos archivos (el plain y el normal)
-# Mejor especificamos el nombre si lo conocemos, o usamos un comodín con cuidado
-#COPY build/libs/*.jar app.jar
-COPY build/libs/*-SNAPSHOT.jar app.jar
+# Copiamos el app.jar que el paso de Jenkins acaba de preparar en la raíz
+COPY app.jar app.jar
 ENTRYPOINT ["java", "-jar", "/app.jar"]
