@@ -6,39 +6,52 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build & Docker') {
+        stage('Build JAR') {
             steps {
                 script {
-                    echo "--- INICIANDO CONSTRUCCIÓN Y EMPAQUETADO ---"
+                    echo "--- COMPILANDO PROYECTO SPRING BOOT ---"
 
-                    // 1. Compilar
                     sh 'chmod +x gradlew'
-                    sh './gradlew clean build'
+                    sh './gradlew clean bootJar'
 
-                    echo "--- BUSCANDO EL ARTEFACTO EN build/libs ---"
+                    echo "--- ARTEFACTOS EN build/libs ---"
                     sh 'ls -lh build/libs'
+                }
+            }
+        }
 
-                    // 2. Seleccionar el JAR correcto
+        stage('Select Artifact') {
+            steps {
+                script {
+                    echo "--- SELECCIONANDO EL JAR EJECUTABLE ---"
+
                     sh '''
-                        JAR=$(ls build/libs/*.jar | grep -v plain | head -n 1)
+                        JAR=$(ls build/libs/*-SNAPSHOT.jar 2>/dev/null || ls build/libs/*.jar | grep -v plain | head -n 1)
 
                         if [ -z "$JAR" ]; then
-                          echo "ERROR: No se encontró ningún JAR válido en build/libs"
+                          echo "ERROR: No se encontró un JAR ejecutable"
                           exit 1
                         fi
 
                         cp "$JAR" app.jar
-                        echo "Artefacto copiado: $JAR"
+                        echo "Artefacto seleccionado: $JAR"
                         ls -lh app.jar
                     '''
+                }
+            }
+        }
 
-                    // 3. Construir imagen Docker
+        stage('Docker Build') {
+            steps {
+                script {
+                    echo "--- CONSTRUYENDO IMAGEN DOCKER ---"
                     sh "docker build -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
                 }
             }
@@ -61,4 +74,3 @@ pipeline {
         }
     }
 }
-
