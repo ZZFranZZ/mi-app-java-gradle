@@ -1,0 +1,47 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Logs que terminan en .log
+  - job_name: varlogs-log
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*.log
+
+  # Logs rotados: .log.1, .log.2, etc.
+  - job_name: varlogs-rotated
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*.log.*
+
+  # Logs de DNF
+  - job_name: dnf
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/dnf*
+
+  # Otros logs que existen en tu sistema
+  - job_name: misc
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/{maillog,tallylog,lastlog,hawkey.log}
+

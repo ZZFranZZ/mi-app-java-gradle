@@ -1,0 +1,126 @@
+version: "3.9"
+
+services:
+
+  # ---------------------------------------------------------
+  # SPRING BOOT APP
+  # ---------------------------------------------------------
+  springboot:
+    image: mi-app-java:latest
+    container_name: mi-app-java
+    ports:
+      - "8081:8080"
+    restart: always
+
+  # ---------------------------------------------------------
+  # JENKINS
+  # ---------------------------------------------------------
+  jenkins:
+    image: mi-jenkins-con-docker
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - /home/vagrant/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  # ---------------------------------------------------------
+  # PROMETHEUS
+  # ---------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    restart: always
+
+  # ---------------------------------------------------------
+  # GRAFANA
+  # ---------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: always
+
+  # ---------------------------------------------------------
+  # LOKI
+  # ---------------------------------------------------------
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    volumes:
+      - loki-data:/loki
+      - ./loki:/etc/loki
+    ports:
+      - "3100:3100"
+    restart: on-failure     # <-- CORRECTO
+
+  # ---------------------------------------------------------
+  # PROMTAIL
+  # ---------------------------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - ./promtail/promtail.yml:/etc/promtail/promtail.yml
+    restart: always
+
+  # ---------------------------------------------------------
+  # TEMPO
+  # ---------------------------------------------------------
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: tempo
+    volumes:
+      - ./tempo:/etc/tempo
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+    restart: always
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+  # ---------------------------------------------------------
+  # JAEGER
+  # ---------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+    restart: always
+
+  # ---------------------------------------------------------
+  # ALERTMANAGER
+  # ---------------------------------------------------------
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    restart: always
+
+  # ---------------------------------------------------------
+  # NODE EXPORTER
+  # ---------------------------------------------------------
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    restart: always
+
+# ---------------------------------------------------------
+# VOLUMENES GLOBALES
+# ---------------------------------------------------------
+volumes:
+  grafana-data:
+  loki-data:
+  tempo-data:
