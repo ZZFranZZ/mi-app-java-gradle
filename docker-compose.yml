@@ -57,12 +57,12 @@ services:
     image: grafana/loki:2.9.4
     container_name: loki
     volumes:
-      - loki-data:/loki
-      - ./loki:/etc/loki
+      - loki-data:/loki 
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
     restart: on-failure     # <-- CORRECTO
-
+    command: ["-config.file=/etc/loki/local-config.yaml"]
   # ---------------------------------------------------------
   # PROMTAIL
   # ---------------------------------------------------------
